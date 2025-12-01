@@ -8,32 +8,29 @@ import config
 # Standard scaling for value that is not extreme
 # one hot encoding applied to categorical columns
 
-config.standard_scale_cols
-config.robust_scale_cols
-
 def logistic_model(num_cols, cat_cols, robust_cols=None, standard_cols=None):
 
-    if robust_scale_cols is None:
-        robust_scale_cols = []
-    if standard_scale_cols is None:
-        standard_scale_cols = []
+    if robust_cols is None:
+        robust_cols = config.robust_scale_cols
+    if standard_cols is None:
+        standard_cols = config.standard_scale_cols
 
     # chosen col to scale
-    used_cols = set(robust_scale_cols) | set(standard_scale_cols)
+    used_cols = set(robust_cols) | set(standard_cols)
 
     # the rest numeric column not chosen
     other_num = [c for c in num_cols if c not in used_cols]
 
     transformers = []
 
-    if robust_scale_cols:
+    if robust_cols:
         transformers.append(
-            ("robust_num", RobustScaler(), robust_scale_cols)
+            ("robust_num", RobustScaler(), robust_cols)
         )
 
-    if standard_scale_cols:
+    if standard_cols:
         transformers.append(
-            ("standard_num", StandardScaler(), standard_scale_cols)
+            ("standard_num", StandardScaler(), standard_cols)
         )
 
     if other_num:
