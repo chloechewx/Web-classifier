@@ -1,0 +1,58 @@
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder, RobustScaler, StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+import config
+
+# Robust scaling will be applied to column with extreme outlier values
+# Standard scaling for value that is not extreme
+# one hot encoding applied to categorical columns
+
+config.standard_scale_cols
+config.robust_scale_cols
+
+def logistic_model(num_cols, cat_cols, robust_cols=None, standard_cols=None):
+
+    if robust_scale_cols is None:
+        robust_scale_cols = []
+    if standard_scale_cols is None:
+        standard_scale_cols = []
+
+    # chosen col to scale
+    used_cols = set(robust_scale_cols) | set(standard_scale_cols)
+
+    # the rest numeric column not chosen
+    other_num = [c for c in num_cols if c not in used_cols]
+
+    transformers = []
+
+    if robust_scale_cols:
+        transformers.append(
+            ("robust_num", RobustScaler(), robust_scale_cols)
+        )
+
+    if standard_scale_cols:
+        transformers.append(
+            ("standard_num", StandardScaler(), standard_scale_cols)
+        )
+
+    if other_num:
+        transformers.append(
+            ("num", "passthrough", other_num)
+        )
+
+    if cat_cols:
+        transformers.append(
+            ("category", OneHotEncoder(handle_unknown="ignore"), cat_cols)
+        )
+
+    preprocessor = ColumnTransformer(transformers=transformers)
+
+    model = Pipeline(
+        steps=[
+            ("preprocess", preprocessor),
+            ("model", LogisticRegression(max_iter=1000)),
+        ]
+    )
+
+    return model
